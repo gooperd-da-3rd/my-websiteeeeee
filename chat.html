@@ -3,23 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Interface</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Chat App</title>
+    <style>
+        #chat-container {
+            width: 400px;
+            height: 500px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #messages {
+            height: 400px;
+            overflow-y: scroll;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h2>Chat with Us</h2>
-        </div>
-        <div class="chat-box" id="chat-box">
-            <!-- Chat messages will be inserted here -->
-        </div>
-        <div class="input-container">
-            <input type="text" id="message-input" placeholder="Type your message..." />
-            <button id="send-btn">Send</button>
-        </div>
+    <div id="chat-container">
+        <div id="messages"></div>
+        <input type="text" id="message-input" placeholder="Type your message" />
+        <button onclick="sendMessage(document.getElementById('message-input').value)">Send</button>
     </div>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.ably.io/lib/ably.min-1.js"></script>
+    <script>
+        const ably = new Ably.Realtime(' 0VJ95w.Nrk8pw:rpRUfj5gqjhF9hlNr1fLIAXqtvvkKp_qWPvdslQE8r0'); // Replace with your Ably API key
+        const channel = ably.channels.get('chat-room'); // Channel name
+
+        // Listen for incoming messages
+        channel.subscribe('chat-message', (message) => {
+            const messageContainer = document.getElementById('messages');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = `${message.data.user}: ${message.data.text}`;
+            messageContainer.appendChild(newMessage);
+            messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to the latest message
+        });
+
+        // Send message to channel
+        function sendMessage(message) {
+            if (message.trim() === '') return;
+            channel.publish('chat-message', {
+                text: message,
+                timestamp: new Date().toISOString(),
+                user: 'user1' // You can make this dynamic
+            });
+            document.getElementById('message-input').value = ''; // Clear input
+        }
+    </script>
 </body>
 </html>
