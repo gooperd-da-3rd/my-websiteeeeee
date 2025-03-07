@@ -3,59 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-    <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                 <li><a href="chat.html">chat</a></li>
-                <li><a href="features.html">features</a></li>
-                <li><a href="partners.html">Partners</a></li>
+    <title>Local Storage Chat</title>
+    
     <style>
-        #chat-container {
-            width: 400px;
-            height: 500px;
-            border: 1px solid #ccc;
-            padding: 10px;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 20px;
         }
-        #messages {
-            height: 400px;
+        .chat-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        .messages {
+            list-style-type: none;
+            padding: 0;
+            max-height: 300px;
             overflow-y: scroll;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .message {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div id="messages"></div>
-        <input type="text" id="message-input" placeholder="Type your message" />
-        <button onclick="sendMessage(document.getElementById('message-input').value)">Send</button>
+
+    <div class="chat-container">
+        <h2>Local Storage Chat</h2>
+        <ul class="messages" id="messages-list"></ul>
+        <div>
+            <input type="text" id="message-input" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
     </div>
 
-    <script src="https://cdn.ably.io/lib/ably.min-1.js"></script>
     <script>
-        const ably = new Ably.Realtime(' 0VJ95w.Nrk8pw:rpRUfj5gqjhF9hlNr1fLIAXqtvvkKp_qWPvdslQE8r0'); // Replace with your Ably API key
-        const channel = ably.channels.get('the chat'); // Channel name
+        // Function to display messages from local storage
+        function displayMessages() {
+            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+            const messageList = document.getElementById('messages-list');
+            messageList.innerHTML = '';
 
-        // Listen for incoming messages
-        channel.subscribe('chat-message', (message) => {
-            const messageContainer = document.getElementById('messages');
-            const newMessage = document.createElement('div');
-            newMessage.textContent = `${message.data.user}: ${message.data.text}`;
-            messageContainer.appendChild(newMessage);
-            messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to the latest message
-        });
-
-        // Send message to channel
-        function sendMessage(message) {
-            if (message.trim() === '') return;
-            channel.publish('chat-message', {
-                text: message,
-                timestamp: new Date().toISOString(),
-                user: 'user1' // You can make this dynamic
+            messages.forEach(message => {
+                const messageItem = document.createElement('li');
+                messageItem.className = 'message';
+                messageItem.textContent = `${message.username}: ${message.text}`;
+                messageList.appendChild(messageItem);
             });
-            document.getElementById('message-input').value = ''; // Clear input
         }
+
+        // Function to send a message
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value;
+            if (messageText.trim() === '') return;
+
+            const username = 'Anonymous';  // Default username (can be customized)
+
+            // Get existing messages from local storage
+            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+
+            // Add the new message to the list
+            messages.push({ username: username, text: messageText });
+
+            // Save the updated messages back to local storage
+            localStorage.setItem('chatMessages', JSON.stringify(messages));
+
+            // Clear the input field
+            messageInput.value = '';
+
+            // Re-display the updated messages
+            displayMessages();
+        }
+
+        // Display messages when the page loads
+        window.onload = displayMessages;
     </script>
+
 </body>
 </html>
