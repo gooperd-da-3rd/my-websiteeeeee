@@ -3,14 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Storage Chat</title>
-                    <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                 <li><a href="chat.html">chat</a></li>
-                <li><a href="features.html">features</a></li>
-                <li><a href="partners.html">Partners</a></li>
-    
+    <title>Ably Real-time Chat</title>
+    <script src="https://cdn.ably.io/lib/ably.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,7 +56,7 @@
 <body>
 
     <div class="chat-container">
-        <h2>Local Storage Chat</h2>
+        <h2>Ably Real-time Chat</h2>
         <ul class="messages" id="messages-list"></ul>
         <div>
             <input type="text" id="message-input" placeholder="Type a message..." />
@@ -71,46 +65,48 @@
     </div>
 
     <script>
-        // Function to display messages from local storage
-        function displayMessages() {
-            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-            const messageList = document.getElementById('messages-list');
-            messageList.innerHTML = '';
+        // Your Ably API key (O0haqQ.Rf6XMQ:WDewIeadUIkg_uLHpvdStejHFTl_VWxajimaujmdb_Y)
+        const apiKey = 'YOUR_ABLY_API_KEY'; // O0haqQ.Rf6XMQ:WDewIeadUIkg_uLHpvdStejHFTl_VWxajimaujmdb_Y
 
-            messages.forEach(message => {
-                const messageItem = document.createElement('li');
-                messageItem.className = 'message';
-                messageItem.textContent = `${message.username}: ${message.text}`;
-                messageList.appendChild(messageItem);
-            });
+        // Initialize Ably Realtime object
+        const ably = new Ably.Realtime(apiKey);
+
+        // Connect to a channel
+        const channel = ably.channels.get('chat-channel'); // Use a channel name, e.g., "chat-channel"
+
+        // Function to display messages in the UI
+        function displayMessage(username, text) {
+            const messageList = document.getElementById('messages-list');
+            const messageItem = document.createElement('li');
+            messageItem.className = 'message';
+            messageItem.textContent = `${username}: ${text}`;
+            messageList.appendChild(messageItem);
         }
+
+        // Listen for messages on the channel
+        channel.subscribe('message', function(message) {
+            const username = message.data.username || 'Anonymous';
+            const text = message.data.text;
+            displayMessage(username, text);
+        });
 
         // Function to send a message
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const messageText = messageInput.value;
+
             if (messageText.trim() === '') return;
 
-            const username = 'Anonymous';  // Default username (can be customized)
+            // Send the message to the Ably channel
+            channel.publish('message', {
+                username: 'Anonymous', // You can replace this with a user-specific name
+                text: messageText
+            });
 
-            // Get existing messages from local storage
-            const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-
-            // Add the new message to the list
-            messages.push({ username: username, text: messageText });
-
-            // Save the updated messages back to local storage
-            localStorage.setItem('chatMessages', JSON.stringify(messages));
-
-            // Clear the input field
+            // Clear the input field after sending
             messageInput.value = '';
-
-            // Re-display the updated messages
-            displayMessages();
         }
 
-        // Display messages when the page loads
-        window.onload = displayMessages;
     </script>
 
 </body>
