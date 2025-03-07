@@ -29,7 +29,7 @@
     <script src="https://cdn.ably.io/lib/ably.min-1.js"></script>
     <script>
         const ably = new Ably.Realtime(' 0VJ95w.Nrk8pw:rpRUfj5gqjhF9hlNr1fLIAXqtvvkKp_qWPvdslQE8r0'); // Replace with your Ably API key
-        const channel = ably.channels.get('chat-room'); // Channel name
+        const channel = ably.channels.get('the chat'); // Channel name
 
         // Listen for incoming messages
         channel.subscribe('chat-message', (message) => {
